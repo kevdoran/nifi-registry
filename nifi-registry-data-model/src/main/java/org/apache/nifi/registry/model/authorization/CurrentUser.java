@@ -24,12 +24,7 @@ public class CurrentUser {
 
     private String identity;
     private boolean anonymous;
-
-    private Permissions administrationPermissions;
-    private Permissions bucketsPermissions;
-    private Permissions tenantsPermissions;
-    private Permissions policiesPermissions;
-    private Permissions resourcesPermissions;
+    private TopLevelPermissions topLevelPermissions;
 
     @ApiModelProperty("The identity of the current user")
     public String getIdentity() {
@@ -49,48 +44,12 @@ public class CurrentUser {
         this.anonymous = anonymous;
     }
 
-    @ApiModelProperty("The access that the current user has to the administration section of the NiFi Regsitry UI")
-    public Permissions getAdministrationPermissions() {
-        return administrationPermissions;
+    @ApiModelProperty("The access that the current user has to top level resources")
+    public TopLevelPermissions getTopLevelPermissions() {
+        return topLevelPermissions;
     }
 
-    public void setAdministrationPermissions(Permissions administrationPermissions) {
-        this.administrationPermissions = administrationPermissions;
-    }
-
-    @ApiModelProperty("The access that the current user has to the top level /buckets resource of this NiFi Registry")
-    public Permissions getBucketsPermissions() {
-        return bucketsPermissions;
-    }
-
-    public void setBucketsPermissions(Permissions bucketsPermissions) {
-        this.bucketsPermissions = bucketsPermissions;
-    }
-
-    @ApiModelProperty("The access that the current user has to the top level /tenants resource of this NiFi Registry")
-    public Permissions getTenantsPermissions() {
-        return tenantsPermissions;
-    }
-
-    public void setTenantsPermissions(Permissions tenantsPermissions) {
-        this.tenantsPermissions = tenantsPermissions;
-    }
-
-    @ApiModelProperty("The access that the current user has to the top level /policies resource of this NiFi Registry")
-    public Permissions getPoliciesPermissions() {
-        return policiesPermissions;
-    }
-
-    public void setPoliciesPermissions(Permissions policiesPermissions) {
-        this.policiesPermissions = policiesPermissions;
-    }
-
-    @ApiModelProperty("The access that the current user has to the top level /resources resource of this NiFi Registry")
-    public Permissions getResourcesPermissions() {
-        return resourcesPermissions;
-    }
-
-    public void setResourcesPermissions(Permissions resourcesPermissions) {
-        this.resourcesPermissions = resourcesPermissions;
+    public void setTopLevelPermissions(TopLevelPermissions topLevelPermissions) {
+        this.topLevelPermissions = topLevelPermissions;
     }
 }

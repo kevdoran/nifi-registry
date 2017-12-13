@@ -235,11 +235,11 @@ public class SecureLdapIT extends IntegrationTestBase {
         String expectedJson = "{" +
                 "\"identity\":\"nifiadmin\"," +
                 "\"anonymous\":false," +
-                "\"administrationPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                "\"topLevelPermissions\":{" +
                 "\"bucketsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"tenantsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"policiesPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
-                "\"resourcesPermissions\":{\"canRead\":true}" +
+                "\"proxyPermissions\":{\"canRead\":false,\"canWrite\":true,\"canDelete\":false}}" +
                 "}";
 
         // When: the /access endpoint is queried using a JWT for the nifiadmin LDAP user
@@ -261,7 +261,12 @@ public class SecureLdapIT extends IntegrationTestBase {
 
         // Given: the client and server have been configured correctly for LDAP authentication
         String expectedJson = "[" +
-                "{\"identity\":\"nifiadmin\",\"userGroups\":[],\"configurable\":false}," +
+                "{\"identity\":\"nifiadmin\",\"userGroups\":[],\"configurable\":false," +
+                    "\"topLevelPermissions\":{" +
+                    "\"bucketsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                    "\"tenantsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                    "\"policiesPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                    "\"proxyPermissions\":{\"canRead\":false,\"canWrite\":true,\"canDelete\":false}}}," +
                 "{\"identity\":\"euler\",\"userGroups\":[{\"identity\":\"mathematicians\"}],\"accessPolicies\":[],\"configurable\":false}," +
                 "{\"identity\":\"euclid\",\"userGroups\":[{\"identity\":\"mathematicians\"}],\"accessPolicies\":[],\"configurable\":false}," +
                 "{\"identity\":\"boyle\",\"userGroups\":[{\"identity\":\"chemists\"}],\"accessPolicies\":[],\"configurable\":false}," +
@@ -378,12 +383,10 @@ public class SecureLdapIT extends IntegrationTestBase {
                 .get(CurrentUser.class);
 
         // Then: 200 OK is returned indicating user has access to no top-level resources
-        assertEquals(new Permissions(), currentUser.getAdministrationPermissions());
-        assertEquals(new Permissions(), currentUser.getBucketsPermissions());
-        assertEquals(new Permissions(), currentUser.getTenantsPermissions());
-        assertEquals(new Permissions(), currentUser.getPoliciesPermissions());
-        assertEquals(new Permissions(), currentUser.getResourcesPermissions());
-
+        assertEquals(new Permissions(), currentUser.getTopLevelPermissions().getBucketsPermissions());
+        assertEquals(new Permissions(), currentUser.getTopLevelPermissions().getTenantsPermissions());
+        assertEquals(new Permissions(), currentUser.getTopLevelPermissions().getPoliciesPermissions());
+        assertEquals(new Permissions(), currentUser.getTopLevelPermissions().getProxyPermissions());
 
         // When: nifiadmin creates a bucket
         final Bucket bucket = new Bucket();

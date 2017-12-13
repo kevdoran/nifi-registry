@@ -35,7 +35,7 @@ public class StandardAuthorizableLookup implements AuthorizableLookup {
 
         @Override
         public Resource getResource() {
-            return ResourceFactory.getTenantResource();
+            return ResourceFactory.getTenantsResource();
         }
     };
 
@@ -48,18 +48,6 @@ public class StandardAuthorizableLookup implements AuthorizableLookup {
         @Override
         public Resource getResource() {
             return ResourceFactory.getPoliciesResource();
-        }
-    };
-
-    private static final Authorizable RESOURCES_AUTHORIZABLE = new Authorizable() {
-        @Override
-        public Authorizable getParentAuthorizable() {
-            return null;
-        }
-
-        @Override
-        public Resource getResource() {
-            return ResourceFactory.getResourceResource();
         }
     };
 
@@ -86,11 +74,6 @@ public class StandardAuthorizableLookup implements AuthorizableLookup {
             return ResourceFactory.getProxyResource();
         }
     };
-
-    @Override
-    public Authorizable getResourcesAuthorizable() {
-        return RESOURCES_AUTHORIZABLE;
-    }
 
     @Override
     public Authorizable getProxyAuthorizable() {
@@ -207,19 +190,6 @@ public class StandardAuthorizableLookup implements AuthorizableLookup {
                 break;
             case Policy:
                 authorizable = getPoliciesAuthorizable();
-                break;
-            case Resource:
-                authorizable = new Authorizable() {
-                    @Override
-                    public Authorizable getParentAuthorizable() {
-                        return null;
-                    }
-
-                    @Override
-                    public Resource getResource() {
-                        return ResourceFactory.getResourceResource();
-                    }
-                };
                 break;
             case Tenant:
                 authorizable = getTenantsAuthorizable();

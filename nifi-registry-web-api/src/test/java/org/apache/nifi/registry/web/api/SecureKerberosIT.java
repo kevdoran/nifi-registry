@@ -190,11 +190,11 @@ public class SecureKerberosIT extends IntegrationTestBase {
         String expectedJson = "{" +
                 "\"identity\":\"kerberosUser@LOCALHOST\"," +
                 "\"anonymous\":false," +
-                "\"administrationPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                "\"topLevelPermissions\":{" +
                 "\"bucketsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"tenantsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"policiesPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
-                "\"resourcesPermissions\":{\"canRead\":true}" +
+                "\"proxyPermissions\":{\"canRead\":false,\"canWrite\":true,\"canDelete\":false}}" +
                 "}";
 
         // When: the /access endpoint is queried using a JWT for the kerberos user

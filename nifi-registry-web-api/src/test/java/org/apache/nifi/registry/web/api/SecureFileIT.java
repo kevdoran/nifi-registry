@@ -53,11 +53,11 @@ public class SecureFileIT extends IntegrationTestBase {
         String expectedJson = "{" +
                 "\"identity\":\"CN=user1, OU=nifi\"," +
                 "\"anonymous\":false," +
-                "\"administrationPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
+                "\"topLevelPermissions\":{" +
                 "\"bucketsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"tenantsPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"policiesPermissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
-                "\"resourcesPermissions\":{\"canRead\":true}" +
+                "\"proxyPermissions\":{\"canRead\":false,\"canWrite\":true,\"canDelete\":false}}" +
                 "}";
 
         // When: the /access endpoint is queried
@@ -78,15 +78,14 @@ public class SecureFileIT extends IntegrationTestBase {
         // Given: an empty registry returns these resources
         String expected = "[" +
                 "{\"identifier\":\"/policies\",\"name\":\"Access Policies\"}," +
-                "{\"identifier\":\"/tenants\",\"name\":\"Tenant\"}," +
+                "{\"identifier\":\"/tenants\",\"name\":\"Tenants\"}," +
                 "{\"identifier\":\"/proxy\",\"name\":\"Proxy User Requests\"}," +
-                "{\"identifier\":\"/resources\",\"name\":\"Resources\"}," +
                 "{\"identifier\":\"/buckets\",\"name\":\"Buckets\"}" +
                 "]";
 
         // When: the /resources endpoint is queried
         final String resourcesJson = client
-                .target(createURL("resources"))
+                .target(createURL("/policies/resources"))
                 .request()
                 .get(String.class);
 

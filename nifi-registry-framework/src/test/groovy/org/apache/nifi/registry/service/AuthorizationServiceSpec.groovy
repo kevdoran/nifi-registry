@@ -31,8 +31,10 @@ import org.apache.nifi.registry.bucket.Bucket
 import org.apache.nifi.registry.model.authorization.AccessPolicy
 import org.apache.nifi.registry.model.authorization.User
 import org.apache.nifi.registry.model.authorization.UserGroup
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class AuthorizationServiceSpec extends Specification {
 
     def registryService = Mock(RegistryService)

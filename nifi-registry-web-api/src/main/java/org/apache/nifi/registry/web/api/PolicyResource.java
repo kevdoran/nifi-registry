@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.nifi.registry.model.authorization.Resource;
 import org.apache.nifi.registry.security.authorization.Authorizer;
 import org.apache.nifi.registry.security.authorization.AuthorizerCapabilityDetection;
 import org.apache.nifi.registry.security.authorization.RequestAction;
@@ -60,12 +61,12 @@ import java.util.List;
         value = "/policies",
         description = "Endpoint for managing access policies."
 )
-public class AccessPolicyResource extends AuthorizableApplicationResource {
+public class PolicyResource extends AuthorizableApplicationResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessPolicyResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(PolicyResource.class);
 
     @Autowired
-    public AccessPolicyResource(
+    public PolicyResource(
             Authorizer authorizer,
             AuthorizationService authorizationService) {
         super(authorizer, authorizationService);
@@ -305,6 +306,31 @@ public class AccessPolicyResource extends AuthorizableApplicationResource {
         authorizeAccessToPolicy(RequestAction.DELETE, identifier);
         AccessPolicy deletedPolicy = authorizationService.deleteAccessPolicy(identifier);
         return generateOkResponse(deletedPolicy).build();
+    }
+
+    /**
+     * Gets the available resources that support access/authorization policies.
+     *
+     * @return A resourcesEntity.
+     */
+    @GET
+    @Path("/resources")
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Gets the available resources that support access/authorization policies",
+            response = Resource.class,
+            responseContainer = "List"
+    )
+    @ApiResponses({
+            @ApiResponse(code = 401, message = HttpStatusMessages.MESSAGE_401),
+            @ApiResponse(code = 403, message = HttpStatusMessages.MESSAGE_403) })
+    public Response getResources() {
+        authorizeAccess(RequestAction.READ);
+
+        final List<Resource> resources = authorizationService.getResources();
+
+        return generateOkResponse(resources).build();
     }
 
 

@@ -23,6 +23,7 @@ import org.apache.nifi.registry.model.authorization.CurrentUser;
 import org.apache.nifi.registry.model.authorization.Permissions;
 import org.apache.nifi.registry.model.authorization.Resource;
 import org.apache.nifi.registry.model.authorization.Tenant;
+import org.apache.nifi.registry.model.authorization.TopLevelPermissions;
 import org.apache.nifi.registry.model.authorization.User;
 import org.apache.nifi.registry.model.authorization.UserGroup;
 import org.apache.nifi.registry.security.authorization.AccessPolicyProvider;
@@ -110,25 +111,7 @@ public class AuthorizationService {
         final CurrentUser currentUser = new CurrentUser();
         currentUser.setIdentity(user.getIdentity());
         currentUser.setAnonymous(user.isAnonymous());
-
-        final Permissions bucketsPermissions = getPermissionsForResource(authorizableLookup.getBucketsAuthorizable());
-        currentUser.setBucketsPermissions(bucketsPermissions);
-
-        final Permissions policiesPermissions = getPermissionsForResource(authorizableLookup.getPoliciesAuthorizable());
-        currentUser.setPoliciesPermissions(policiesPermissions);
-
-        final Permissions tenantsPermissions = getPermissionsForResource(authorizableLookup.getTenantsAuthorizable());
-        currentUser.setTenantsPermissions(tenantsPermissions);
-
-        final Permissions resourcesPermissions = getPermissionsForResource(authorizableLookup.getResourcesAuthorizable());
-        currentUser.setResourcesPermissions(resourcesPermissions);
-
-        final Permissions administrationPermissions = new Permissions()
-                .withCanRead(bucketsPermissions.getCanRead() || tenantsPermissions.getCanRead() || policiesPermissions.getCanRead())
-                .withCanWrite(bucketsPermissions.getCanWrite() || tenantsPermissions.getCanWrite() || policiesPermissions.getCanWrite())
-                .withCanDelete(bucketsPermissions.getCanDelete() || tenantsPermissions.getCanDelete() || policiesPermissions.getCanDelete());
-        currentUser.setAdministrationPermissions(administrationPermissions);
-
+        currentUser.setTopLevelPermissions(getTopLevelPermissions());
         return currentUser;
     }
 
@@ -162,6 +145,26 @@ public class AuthorizationService {
         }
 
         return permissions;
+    }
+
+    private TopLevelPermissions getTopLevelPermissions() {
+
+        NiFiUser user = NiFiUserUtils.getNiFiUser();
+        TopLevelPermissions topLevelPermissions = new TopLevelPermissions();
+
+        final Permissions bucketsPermissions = getPermissionsForResource(authorizableLookup.getBucketsAuthorizable());
+        topLevelPermissions.setBucketsPermissions(bucketsPermissions);
+
+        final Permissions policiesPermissions = getPermissionsForResource(authorizableLookup.getPoliciesAuthorizable());
+        topLevelPermissions.setPoliciesPermissions(policiesPermissions);
+
+        final Permissions tenantsPermissions = getPermissionsForResource(authorizableLookup.getTenantsAuthorizable());
+        topLevelPermissions.setTenantsPermissions(tenantsPermissions);
+
+        final Permissions proxyPermissions = getPermissionsForResource(authorizableLookup.getProxyAuthorizable());
+        topLevelPermissions.setProxyPermissions(proxyPermissions);
+
+        return topLevelPermissions;
     }
 
     // ---------------------- User methods ----------------------------------------------
@@ -442,6 +445,46 @@ public class AuthorizationService {
         }
     }
 
+    private TopLevelPermissions getTopLevelPermissions(String tenantIdentifier) {
+        TopLevelPermissions topLevelPermissions = new TopLevelPermissions();
+
+        final Permissions bucketsPermissions = getPermissionsForResource(tenantIdentifier, ResourceFactory.getBucketsResource());
+        topLevelPermissions.setBucketsPermissions(bucketsPermissions);
+
+        final Permissions policiesPermissions = getPermissionsForResource(tenantIdentifier, ResourceFactory.getPoliciesResource());
+        topLevelPermissions.setPoliciesPermissions(policiesPermissions);
+
+        final Permissions tenantsPermissions = getPermissionsForResource(tenantIdentifier, ResourceFactory.getTenantsResource());
+        topLevelPermissions.setTenantsPermissions(tenantsPermissions);
+
+        final Permissions proxyPermissions = getPermissionsForResource(tenantIdentifier, ResourceFactory.getProxyResource());
+        topLevelPermissions.setProxyPermissions(proxyPermissions);
+
+        return topLevelPermissions;
+    }
+
+    private Permissions getPermissionsForResource(String tenantIdentifier, org.apache.nifi.registry.security.authorization.Resource resource) {
+
+        Permissions permissions = new Permissions();
+        permissions.setCanRead(checkTenantBelongsToPolicy(tenantIdentifier, resource, RequestAction.READ));
+        permissions.setCanWrite(checkTenantBelongsToPolicy(tenantIdentifier, resource, RequestAction.WRITE));
+        permissions.setCanDelete(checkTenantBelongsToPolicy(tenantIdentifier, resource, RequestAction.DELETE));
+        return permissions;
+
+    }
+
+    private boolean checkTenantBelongsToPolicy(String tenantIdentifier, org.apache.nifi.registry.security.authorization.Resource resource, RequestAction action) {
+        org.apache.nifi.registry.security.authorization.AccessPolicy policy =
+                accessPolicyProvider.getAccessPolicy(resource.getIdentifier(), action);
+
+        if (policy == null) {
+            return false;
+        }
+
+        boolean tenantInPolicy = policy.getUsers().contains(tenantIdentifier) || policy.getGroups().contains(tenantIdentifier);
+        return tenantInPolicy;
+    }
+
     private List<org.apache.nifi.registry.security.authorization.Resource> getAuthorizableResources() {
         return getAuthorizableResources(null);
     }
@@ -454,19 +497,16 @@ public class AuthorizationService {
             resources.add(ResourceFactory.getPoliciesResource());
         }
         if (includeFilter == null || includeFilter.equals(ResourceType.Tenant)) {
-            resources.add(ResourceFactory.getTenantResource());
+            resources.add(ResourceFactory.getTenantsResource());
         }
         if (includeFilter == null || includeFilter.equals(ResourceType.Proxy)) {
             resources.add(ResourceFactory.getProxyResource());
-        }
-        if (includeFilter == null || includeFilter.equals(ResourceType.Resource)) {
-            resources.add(ResourceFactory.getResourceResource());
         }
         if (includeFilter == null || includeFilter.equals(ResourceType.Bucket)) {
             resources.add(ResourceFactory.getBucketsResource());
             // add all buckets
             for (final Bucket bucket : registryService.getBuckets()) {
-                resources.add(ResourceFactory.getChildResource(ResourceType.Bucket, bucket.getIdentifier(), bucket.getName()));
+                resources.add(ResourceFactory.getBucketResource(bucket.getIdentifier(), bucket.getName()));
             }
         }
 
@@ -488,6 +528,8 @@ public class AuthorizationService {
 
         User userDTO = new User(user.getIdentifier(), user.getIdentity());
         userDTO.setConfigurable(AuthorizerCapabilityDetection.isUserConfigurable(authorizer, user));
+        userDTO.setTopLevelPermissions(getTopLevelPermissions(userDTO.getIdentifier()));
+        userDTO.setTopLevelPermissions(getTopLevelPermissions());
         userDTO.addUserGroups(groupsContainingUser);
         userDTO.addAccessPolicies(accessPolicySummaries);
         return userDTO;
@@ -505,6 +547,7 @@ public class AuthorizationService {
 
         UserGroup userGroupDTO = new UserGroup(userGroup.getIdentifier(), userGroup.getName());
         userGroupDTO.setConfigurable(AuthorizerCapabilityDetection.isGroupConfigurable(authorizer, userGroup));
+        userGroupDTO.setTopLevelPermissions(getTopLevelPermissions(userGroupDTO.getIdentifier()));
         userGroupDTO.addUsers(userTenants);
         userGroupDTO.addAccessPolicies(accessPolicySummaries);
         return userGroupDTO;

@@ -32,6 +32,7 @@ public class Tenant {
     private String identifier;
     private String identity;
     private Boolean configurable;
+    private TopLevelPermissions topLevelPermissions;
     private Set<AccessPolicySummary> accessPolicies;
 
     public Tenant() {}
@@ -72,6 +73,18 @@ public class Tenant {
 
     public void setConfigurable(Boolean configurable) {
         this.configurable = configurable;
+    }
+
+    @ApiModelProperty(
+            value = "A summary of access to to top-level resources granted to this tenant.",
+            readOnly = true
+    )
+    public TopLevelPermissions getTopLevelPermissions() {
+        return topLevelPermissions;
+    }
+
+    public void setTopLevelPermissions(TopLevelPermissions topLevelPermissions) {
+        this.topLevelPermissions = topLevelPermissions;
     }
 
     @ApiModelProperty(
