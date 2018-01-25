@@ -20,7 +20,8 @@ public enum ResourceType {
     Bucket("/buckets"),
     Policy("/policies"),
     Proxy("/proxy"),
-    Tenant("/tenants");
+    Tenant("/tenants"),
+    Actuator("/actuator");
 
     final String value;
 
