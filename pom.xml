@@ -112,6 +112,7 @@
         <spring.boot.version>2.0.0.M7</spring.boot.version>
         <spring.security.version>5.0.0.RELEASE</spring.security.version>
         <flyway.version>4.2.0</flyway.version>
+        <io.swagger.version>1.5.18</io.swagger.version>
     </properties>
 
     <repositories>
@@ -294,7 +295,7 @@
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>1.5.16</version>
+                <version>${io.swagger.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi.registry</groupId>

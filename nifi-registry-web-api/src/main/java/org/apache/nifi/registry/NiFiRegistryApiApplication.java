@@ -18,8 +18,10 @@ package org.apache.nifi.registry;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+import java.util.Properties;
 
 /**
  * Main class for starting the NiFi Registry Web API as a Spring Boot application.
@@ -28,10 +30,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * package across other modules. This is done because spring-boot will use the package of this
  * class to automatically scan for beans/config/entities/etc. and would otherwise require
  * configuring custom packages to scan in several different places.
- *
- * WebMvcAutoConfiguration is excluded because our web app is using Jersey in place of SpringMVC
  */
-@SpringBootApplication(exclude = WebMvcAutoConfiguration.class)
+@SpringBootApplication
 public class NiFiRegistryApiApplication extends SpringBootServletInitializer {
 
     public static final String NIFI_REGISTRY_PROPERTIES_ATTRIBUTE = "nifi-registry.properties";
@@ -39,6 +39,18 @@ public class NiFiRegistryApiApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(NiFiRegistryApiApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        final Properties defaultProperties = new Properties();
+
+        // Run Jersey as a filter instead of a servlet so that requests can be forwarded to other handlers (e.g., swagger ui)
+        defaultProperties.setProperty("spring.jersey.type", "filter");
+
+        return application
+                .sources(NiFiRegistryApiApplication.class)
+                .properties(defaultProperties);
     }
 
 }
