@@ -159,6 +159,26 @@ public class RegistryService {
         }
     }
 
+    public Bucket getBucketByName(final String bucketName) {
+        if (bucketName == null) {
+            throw new IllegalArgumentException("Bucket name cannot be null");
+        }
+
+        readLock.lock();
+        try {
+            final List<BucketEntity> buckets = metadataService.getBucketsByName(bucketName);
+            if (buckets == null || buckets.isEmpty()) {
+                LOGGER.warn("The specified bucket name [{}] does not exist.", bucketName);
+                throw new ResourceNotFoundException("The specified bucket name does not exist in this registry.");
+            }
+
+            // name is unique so should never have more than one here
+            return DataModelMapper.map(buckets.get(0));
+        } finally {
+            readLock.unlock();
+        }
+    }
+
     public List<Bucket> getBuckets() {
         readLock.lock();
         try {

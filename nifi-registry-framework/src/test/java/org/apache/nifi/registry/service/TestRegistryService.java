@@ -135,7 +135,7 @@ public class TestRegistryService {
     }
 
     @Test
-    public void testGetExistingBucket() {
+    public void testGetBucketWhenExists() {
         final BucketEntity existingBucket = new BucketEntity();
         existingBucket.setId("b1");
         existingBucket.setName("My Bucket");
@@ -156,6 +156,39 @@ public class TestRegistryService {
     public void testGetBucketDoesNotExist() {
         when(metadataService.getBucketById(any(String.class))).thenReturn(null);
         registryService.getBucket("does-not-exist");
+    }
+
+    @Test
+    public void testGetBucketByNameWhenExists() {
+        final BucketEntity existingBucket = new BucketEntity();
+        existingBucket.setId("b1");
+        existingBucket.setName("My Bucket");
+        existingBucket.setDescription("This is my bucket");
+        existingBucket.setCreated(new Date());
+
+        when(metadataService.getBucketsByName(existingBucket.getName()))
+                .thenReturn(Collections.singletonList(existingBucket));
+
+        final Bucket bucket = registryService.getBucketByName(existingBucket.getName());
+        assertNotNull(bucket);
+        assertEquals(existingBucket.getId(), bucket.getIdentifier());
+        assertEquals(existingBucket.getName(), bucket.getName());
+        assertEquals(existingBucket.getDescription(), bucket.getDescription());
+        assertEquals(existingBucket.getCreated().getTime(), bucket.getCreatedTimestamp());
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetBucketByNameWhenDoesNotExist() {
+        final BucketEntity existingBucket = new BucketEntity();
+        existingBucket.setId("b1");
+        existingBucket.setName("My Bucket");
+        existingBucket.setDescription("This is my bucket");
+        existingBucket.setCreated(new Date());
+
+        when(metadataService.getBucketsByName(existingBucket.getName()))
+                .thenReturn(Collections.emptyList());
+
+        registryService.getBucketByName(existingBucket.getName());
     }
 
     @Test(expected = IllegalArgumentException.class)

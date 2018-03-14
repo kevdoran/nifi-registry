@@ -55,6 +55,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -158,11 +161,11 @@ public class BucketResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{bucketId}")
+    @Path("{bucketName:(?!" + UUID_REGEX + ")[^/]+}")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Gets a bucket",
+            value = "Gets a bucket by name",
             response = Bucket.class,
             extensions = {
                     @Extension(name = "access-policy", properties = {
@@ -174,7 +177,43 @@ public class BucketResource extends AuthorizableApplicationResource {
             @ApiResponse(code = 401, message = HttpStatusMessages.MESSAGE_401),
             @ApiResponse(code = 403, message = HttpStatusMessages.MESSAGE_403),
             @ApiResponse(code = 404, message = HttpStatusMessages.MESSAGE_404) })
-    public Response getBucket(
+    public Response getBucketByName(
+            @PathParam("bucketName")
+            @ApiParam("The bucket name")
+            final String bucketName) throws UnsupportedEncodingException {
+
+        if (bucketName == null) {
+            throw new IllegalArgumentException("Bucket name cannot be null");
+        }
+
+        final String decodedName = URLDecoder.decode(bucketName, StandardCharsets.UTF_8.name());
+        authorizeBucketAccess(RequestAction.READ, decodedName);
+
+        final Bucket bucket = registryService.getBucketByName(decodedName);
+        permissionsService.populateBucketPermissions(bucket);
+        linkService.populateBucketLinks(bucket);
+
+        return Response.status(Response.Status.OK).entity(bucket).build();
+    }
+
+    @GET
+    @Path("{bucketId:" + UUID_REGEX + "}")
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Gets a bucket by id",
+            response = Bucket.class,
+            extensions = {
+                    @Extension(name = "access-policy", properties = {
+                            @ExtensionProperty(name = "action", value = "read"),
+                            @ExtensionProperty(name = "resource", value = "/buckets/{bucketId}") })
+            }
+    )
+    @ApiResponses({
+            @ApiResponse(code = 401, message = HttpStatusMessages.MESSAGE_401),
+            @ApiResponse(code = 403, message = HttpStatusMessages.MESSAGE_403),
+            @ApiResponse(code = 404, message = HttpStatusMessages.MESSAGE_404) })
+    public Response getBucketById(
             @PathParam("bucketId")
             @ApiParam("The bucket identifier")
             final String bucketId) {
@@ -187,8 +226,9 @@ public class BucketResource extends AuthorizableApplicationResource {
         return Response.status(Response.Status.OK).entity(bucket).build();
     }
 
+
     @PUT
-    @Path("{bucketId}")
+    @Path("{bucketId:" + UUID_REGEX + "}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -238,7 +278,7 @@ public class BucketResource extends AuthorizableApplicationResource {
     }
 
     @DELETE
-    @Path("{bucketId}")
+    @Path("{bucketId:" + UUID_REGEX + "}")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(

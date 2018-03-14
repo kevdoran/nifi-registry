@@ -47,6 +47,8 @@ public class ApplicationResource {
 
     protected static final String NON_GUARANTEED_ENDPOINT = "Note: This endpoint is subject to change as NiFi Registry and its REST API evolve.";
 
+    public static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
     private static final Logger logger = LoggerFactory.getLogger(ApplicationResource.class);
 
     @Context

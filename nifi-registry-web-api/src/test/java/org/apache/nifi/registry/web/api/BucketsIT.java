@@ -25,6 +25,9 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import static org.apache.nifi.registry.web.api.IntegrationTestUtils.assertBucketsEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -97,6 +100,15 @@ public class BucketsIT extends UnsecuredITBase {
 
         // Then: a 404 response status is returned
         assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"classpath:db/clearDB.sql", "classpath:db/BucketsIT.sql"})
+    public void testGetBucketByName() throws Exception {
+        String encodedName = URLEncoder.encode("Bucket 1", StandardCharsets.UTF_8.name());
+        Bucket bucket = client.target(createURL("buckets/" + encodedName)).request().get(Bucket.class);
+        assertNotNull(bucket);
+        assertEquals("Bucket 1", bucket.getName());
     }
 
     @Test

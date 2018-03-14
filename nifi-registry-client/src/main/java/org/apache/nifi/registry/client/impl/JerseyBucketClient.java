@@ -81,6 +81,22 @@ public class JerseyBucketClient extends AbstractJerseyClient implements BucketCl
     }
 
     @Override
+    public Bucket getByName(final String bucketName) throws NiFiRegistryException, IOException {
+        if (StringUtils.isBlank(bucketName)) {
+            throw new IllegalArgumentException("Bucket name cannot be blank");
+        }
+
+        return executeAction("Error retrieving bucket", () -> {
+            final WebTarget target = bucketsTarget
+                    .path("/{bucketName}")
+                    .resolveTemplate("bucketName", bucketName);
+
+            return getRequestBuilder(target).get(Bucket.class);
+        });
+
+    }
+
+    @Override
     public Bucket update(final Bucket bucket) throws NiFiRegistryException, IOException {
         if (bucket == null) {
             throw new IllegalArgumentException("Bucket cannot be null");

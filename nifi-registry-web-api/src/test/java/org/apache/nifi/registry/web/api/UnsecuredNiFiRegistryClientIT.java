@@ -118,11 +118,18 @@ public class UnsecuredNiFiRegistryClientIT extends UnsecuredITBase {
             createdBuckets.add(createdBucket);
         }
 
-        // get each bucket
+        // get each bucket by id
         for (final Bucket bucket : createdBuckets) {
             final Bucket retrievedBucket = bucketClient.get(bucket.getIdentifier());
             Assert.assertNotNull(retrievedBucket);
             LOGGER.info("Retrieved bucket " + retrievedBucket.getIdentifier());
+        }
+
+        // get each bucket by name
+        for (final Bucket bucket : createdBuckets) {
+            final Bucket retrievedBucket = bucketClient.getByName(bucket.getName());
+            Assert.assertNotNull(retrievedBucket);
+            LOGGER.info("Retrieved bucket " + retrievedBucket.getName());
         }
 
         //final Bucket nonExistentBucket = bucketClient.get("does-not-exist");

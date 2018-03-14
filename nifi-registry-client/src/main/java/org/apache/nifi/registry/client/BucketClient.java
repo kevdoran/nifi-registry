@@ -44,6 +44,14 @@ public interface BucketClient {
     Bucket get(String bucketId) throws NiFiRegistryException, IOException;
 
     /**
+     * Gets the bucket with the given name.
+     *
+     * @param bucketName the name of the bucket to retrieve
+     * @return the bucket with the given name
+     */
+    Bucket getByName(String bucketName) throws NiFiRegistryException, IOException;
+
+    /**
      * Updates the given bucket. Only the name and description can be updated.
      *
      * @param bucket the bucket with updates, must contain the id
