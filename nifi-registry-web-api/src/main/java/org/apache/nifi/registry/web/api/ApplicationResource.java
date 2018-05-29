@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.nifi.registry.event.EventService;
 import org.apache.nifi.registry.hook.Event;
+import org.apache.nifi.registry.service.IdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class ApplicationResource {
 
     protected static final String NON_GUARANTEED_ENDPOINT = "Note: This endpoint is subject to change as NiFi Registry and its REST API evolve.";
 
-    public static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+    protected static final String UUID_REGEX = IdResolver.UUID_REGEX;
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationResource.class);
 

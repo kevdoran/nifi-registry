@@ -187,9 +187,10 @@ public class BucketResource extends AuthorizableApplicationResource {
         }
 
         final String decodedName = URLDecoder.decode(bucketName, StandardCharsets.UTF_8.name());
-        authorizeBucketAccess(RequestAction.READ, decodedName);
 
         final Bucket bucket = registryService.getBucketByName(decodedName);
+        authorizeBucketAccess(RequestAction.READ, bucket.getIdentifier());
+
         permissionsService.populateBucketPermissions(bucket);
         linkService.populateBucketLinks(bucket);
 
