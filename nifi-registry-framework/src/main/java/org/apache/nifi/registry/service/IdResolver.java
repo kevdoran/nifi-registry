@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -56,7 +59,7 @@ public class IdResolver {
         if (isExplicitId(bucketIdOrName)) {
             bucketIdOptional = Optional.of(removePrefix(bucketIdOrName));
         } else if (isExplicitName(bucketIdOrName)) {
-            bucketIdOptional = getBucketIdByName(removePrefix(bucketIdOrName));
+            bucketIdOptional = getBucketIdByName(urlDecode(removePrefix(bucketIdOrName)));
         } else {
             bucketIdOptional = isUUID(bucketIdOrName)
                     ? Optional.of(bucketIdOrName)
@@ -79,7 +82,7 @@ public class IdResolver {
         if (isExplicitId(flowIdOrName)) {
             flowIdOptional = Optional.of(removePrefix(flowIdOrName));
         } else if (isExplicitName(flowIdOrName)) {
-            flowIdOptional = getFlowIdByBucketAndName(bucketId, removePrefix(flowIdOrName));
+            flowIdOptional = getFlowIdByBucketAndName(bucketId, urlDecode(removePrefix(flowIdOrName)));
         } else {
             flowIdOptional = isUUID(flowIdOrName)
                     ? Optional.of(flowIdOrName)
@@ -123,6 +126,15 @@ public class IdResolver {
 
     private static String removePrefix(final String string) {
         return string.substring(PREFIX_LENGTH);
+    }
+
+    private static String urlDecode(final String string) {
+        try {
+            return URLDecoder.decode(string, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Could not decode argument", e);
+        }
+
     }
 
     private static boolean isUUID(final String string) {
