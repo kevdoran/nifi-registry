@@ -155,7 +155,6 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
                 final String bucketIdOrName) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
-
         authorizeBucketAccess(RequestAction.READ, bucketId);
 
         final List<VersionedFlow> flows = registryService.getFlows(bucketId);
@@ -204,7 +203,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @PUT
-    @Path("{flowId}")
+    @Path("{flowIdOrName}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -226,16 +225,17 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-                final String flowId,
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+                final String flowIdOrName,
             @ApiParam(value = "The updated flow", required = true)
                 final VersionedFlow flow) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
-
-        verifyPathParamsMatchBody(bucketId, flowId, flow);
         authorizeBucketAccess(RequestAction.WRITE, bucketId);
+
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
+        verifyPathParamsMatchBody(bucketId, flowId, flow);
 
         // bucketId and flowId fields are optional in the body parameter, but required before calling the service layer
         setBucketItemMetadataIfMissing(bucketId, flowId, flow);
@@ -249,7 +249,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @DELETE
-    @Path("{flowId}")
+    @Path("{flowIdOrName}")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -270,19 +270,20 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifierOrName")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-                final String flowId) {
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+                final String flowIdOrName) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.DELETE, bucketId);
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
         final VersionedFlow deletedFlow = registryService.deleteFlow(bucketId, flowId);
         publish(EventFactory.flowDeleted(deletedFlow));
         return Response.status(Response.Status.OK).entity(deletedFlow).build();
     }
 
     @POST
-    @Path("{flowId}/versions")
+    @Path("{flowIdOrName}/versions")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -306,16 +307,17 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam(value = "The flow identifier")
-                final String flowId,
+            @PathParam("flowIdOrName")
+            @ApiParam(value = "The flow identifier or name")
+                final String flowIdOrName,
             @ApiParam(value = "The new versioned flow snapshot.", required = true)
                 final VersionedFlowSnapshot snapshot) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
-
-        verifyPathParamsMatchBody(bucketId, flowId, snapshot);
         authorizeBucketAccess(RequestAction.WRITE, bucketId);
+
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
+        verifyPathParamsMatchBody(bucketId, flowId, snapshot);
 
         // bucketId and flowId fields are optional in the body parameter, but required before calling the service layer
         setSnaphotMetadataIfMissing(bucketId, flowId, snapshot);
@@ -337,7 +339,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{flowId}/versions")
+    @Path("{flowIdOrName}/versions")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -359,13 +361,14 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-                final String flowId) {
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+                final String flowIdOrName) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.READ, bucketId);
 
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
         final SortedSet<VersionedFlowSnapshotMetadata> snapshots = registryService.getFlowSnapshots(bucketId, flowId);
         if (snapshots != null ) {
             linkService.populateSnapshotLinks(snapshots);
@@ -375,7 +378,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{flowId}/versions/latest")
+    @Path("{flowIdOrName}/versions/latest")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -396,12 +399,13 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-                final String flowId) {
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+                final String flowIdOrName) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.READ, bucketId);
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
 
         final VersionedFlowSnapshotMetadata latestMetadata = registryService.getLatestFlowSnapshotMetadata(bucketId, flowId);
         final VersionedFlowSnapshot lastSnapshot = registryService.getFlowSnapshot(bucketId, flowId, latestMetadata.getVersion());
@@ -411,7 +415,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{flowId}/versions/latest/metadata")
+    @Path("{flowIdOrName}/versions/latest/metadata")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -432,12 +436,13 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
             final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-            final String flowId) {
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+            final String flowIdOrName) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.READ, bucketId);
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
 
         final VersionedFlowSnapshotMetadata latest = registryService.getLatestFlowSnapshotMetadata(bucketId, flowId);
         linkService.populateSnapshotLinks(latest);
@@ -446,7 +451,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{flowId}/versions/{versionNumber: \\d+}")
+    @Path("{flowIdOrName}/versions/{versionNumber: \\d+}")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -468,15 +473,16 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
                 final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-                final String flowId,
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+                final String flowIdOrName,
             @PathParam("versionNumber")
             @ApiParam("The version number")
                 final Integer versionNumber) {
 
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.READ, bucketId);
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
 
         final VersionedFlowSnapshot snapshot = registryService.getFlowSnapshot(bucketId, flowId, versionNumber);
         populateLinksAndPermissions(snapshot);
@@ -485,7 +491,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
     }
 
     @GET
-    @Path("{flowId}/diff/{versionA: \\d+}/{versionB: \\d+}")
+    @Path("{flowIdOrName}/diff/{versionA: \\d+}/{versionB: \\d+}")
     @Consumes(MediaType.WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -507,9 +513,9 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             @PathParam("bucketIdOrName")
             @ApiParam("The bucket identifier or name")
             final String bucketIdOrName,
-            @PathParam("flowId")
-            @ApiParam("The flow identifier")
-            final String flowId,
+            @PathParam("flowIdOrName")
+            @ApiParam("The flow identifier or name")
+            final String flowIdOrName,
             @PathParam("versionA")
             @ApiParam("The first version number")
             final Integer versionNumberA,
@@ -518,6 +524,7 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             final Integer versionNumberB) {
         final String bucketId = resolveBucketId(bucketIdOrName);
         authorizeBucketAccess(RequestAction.READ, bucketIdOrName);
+        final String flowId = resolveFlowId(bucketId, flowIdOrName);
         VersionedFlowDifference result = registryService.getFlowDiff(bucketId, flowId, versionNumberA, versionNumberB);
         return Response.status(Response.Status.OK).entity(result).build();
     }
@@ -543,12 +550,10 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             throw new IllegalArgumentException("bucketIdOrName must not be null");
         }
 
-        final String bucketId = IdResolver.isUUID(bucketIdOrName)
-                ? bucketIdOrName
-                : idResolver.getBucketIdByName(bucketIdOrName).orElseThrow(() -> {
-                    logger.warn("The specified bucket name [{}] does not exist.", bucketIdOrName);
-                    return new NotFoundException("The specified bucket name does not exist in this registry.");
-                });
+        final String bucketId = idResolver.resolveBucketId(bucketIdOrName).orElseThrow(() -> {
+            logger.warn("The specified bucket name [{}] does not exist.", bucketIdOrName);
+            return new NotFoundException("The specified bucket name does not exist in this registry.");
+        });
         return bucketId;
     }
 
@@ -557,13 +562,11 @@ public class BucketFlowResource extends AuthorizableApplicationResource {
             throw new IllegalArgumentException("bucketId and flowIdOrName must not be null");
         }
 
-        final String flowId = IdResolver.isUUID(flowIdOrName)
-                ? flowIdOrName
-                : idResolver.getFlowIdByBucketAndName(bucketId, flowIdOrName).orElseThrow(() -> {
+        final String flowId = idResolver.resolveFlowId(bucketId, flowIdOrName).orElseThrow(() -> {
             logger.warn("The specified flow name [{}] does not exist.", flowIdOrName);
             return new NotFoundException("The specified flow name does not exist in this bucket.");
         });
-        return bucketId;
+        return flowId;
     }
 
     private static void verifyPathParamsMatchBody(String bucketIdParam, BucketItem bodyBucketItem) throws BadRequestException {

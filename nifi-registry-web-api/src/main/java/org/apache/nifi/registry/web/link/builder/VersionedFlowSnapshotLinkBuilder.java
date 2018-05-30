@@ -27,7 +27,7 @@ import java.net.URI;
  */
 public class VersionedFlowSnapshotLinkBuilder implements LinkBuilder<VersionedFlowSnapshotMetadata> {
 
-    private static final String PATH = "buckets/{bucketId}/flows/{flowId}/versions/{versionNumber}";
+    private static final String PATH = "buckets/i={bucketId}/flows/i={flowId}/versions/{versionNumber}";
 
     @Override
     public Link createLink(final VersionedFlowSnapshotMetadata snapshotMetadata) {

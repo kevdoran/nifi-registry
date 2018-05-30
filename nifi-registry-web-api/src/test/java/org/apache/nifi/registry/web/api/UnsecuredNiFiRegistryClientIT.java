@@ -279,7 +279,7 @@ public class UnsecuredNiFiRegistryClientIT extends UnsecuredITBase {
             snapshotClient.getLatestMetadata(snapshotFlow.getBucketIdentifier(), "DOES-NOT-EXIST");
             Assert.fail("Should have thrown exception");
         } catch (NiFiRegistryException nfe) {
-            Assert.assertEquals("Error retrieving latest snapshot metadata: The specified flow ID does not exist in this bucket.", nfe.getMessage());
+            Assert.assertEquals("Error retrieving latest snapshot metadata: The specified flow name does not exist in this bucket.", nfe.getMessage());
         }
 
         // get latest metadata without bucket

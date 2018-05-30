@@ -51,7 +51,7 @@ public class FlowsIT extends UnsecuredITBase {
         // When: the /buckets/{id}/flows endpoint is queried
 
         final VersionedFlow[] flows = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", emptyBucketId)
                 .request()
                 .get(VersionedFlow[].class);
@@ -77,7 +77,7 @@ public class FlowsIT extends UnsecuredITBase {
                 "\"modifiedTimestamp\":1505091360000," +
                 "\"type\":\"Flow\"," +
                 "\"permissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
-                "\"link\":{\"params\":{\"rel\":\"self\"},\"href\":\"buckets/1/flows/1\"}}," +
+                "\"link\":{\"params\":{\"rel\":\"self\"},\"href\":\"buckets/i=1/flows/i=1\"}}," +
                 "{\"identifier\":\"2\",\"name\":\"Flow 2\"," +
                 "\"description\":\"This is flow 2\"," +
                 "\"bucketIdentifier\":\"1\"," +
@@ -86,13 +86,13 @@ public class FlowsIT extends UnsecuredITBase {
                 "\"type\":\"Flow\"," +
                 "\"permissions\":{\"canRead\":true,\"canWrite\":true,\"canDelete\":true}," +
                 "\"versionCount\":0," +
-                "\"link\":{\"params\":{\"rel\":\"self\"},\"href\":\"buckets/1/flows/2\"}}" +
+                "\"link\":{\"params\":{\"rel\":\"self\"},\"href\":\"buckets/i=1/flows/i=2\"}}" +
                 "]";
 
         // When: the /buckets/{id}/flows endpoint is queried
 
         final String flowsJson = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", prePopulatedBucketId)
                 .request()
                 .get(String.class);
@@ -118,7 +118,7 @@ public class FlowsIT extends UnsecuredITBase {
         flow.setDescription("This is a flow created by an integration test.");
 
         final VersionedFlow createdFlow = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);
@@ -138,7 +138,7 @@ public class FlowsIT extends UnsecuredITBase {
         // And when .../flows is queried, then the newly created flow is returned in the list
 
         final VersionedFlow[] flows = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .get(VersionedFlow[].class);
@@ -157,7 +157,7 @@ public class FlowsIT extends UnsecuredITBase {
         // And when the bucket is queried by .../flows/ID, then the newly created flow is returned
 
         final VersionedFlow flowById = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", createdFlow.getIdentifier())
                 .request()
@@ -177,7 +177,7 @@ public class FlowsIT extends UnsecuredITBase {
         flow.setName("Test Flow");
         flow.setDescription("This is a flow created by an integration test.");
         final VersionedFlow createdFlow = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);
@@ -188,7 +188,7 @@ public class FlowsIT extends UnsecuredITBase {
         createdFlow.setDescription("This flow has been updated by an integration test.");
 
         final VersionedFlow updatedFlow = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", createdFlow.getIdentifier())
                 .request()
@@ -213,7 +213,7 @@ public class FlowsIT extends UnsecuredITBase {
         flow.setName("Test Flow");
         flow.setDescription("This is a flow created by an integration test.");
         final VersionedFlow createdFlow = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);
@@ -221,7 +221,7 @@ public class FlowsIT extends UnsecuredITBase {
         // When: the flow is deleted
 
         final VersionedFlow deletedFlow = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", createdFlow.getIdentifier())
                 .request()
@@ -234,7 +234,7 @@ public class FlowsIT extends UnsecuredITBase {
         assertFlowsEqual(createdFlow, deletedFlow, true);
 
         final Response response = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", createdFlow.getIdentifier())
                 .request()
@@ -253,7 +253,7 @@ public class FlowsIT extends UnsecuredITBase {
         // When: the /buckets/{id}/flows/{id}/versions endpoint is queried
 
         final VersionedFlowSnapshot[] flowSnapshots = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}/versions"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}/versions"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", flowId)
                 .request()
@@ -280,19 +280,19 @@ public class FlowsIT extends UnsecuredITBase {
                 "\"timestamp\":1505091480000," +
                 "\"author\" : \"user2\"," +
                 "\"comments\":\"This is flow 1 snapshot 2\"," +
-                "\"link\":{\"params\":{\"rel\":\"content\"},\"href\":\"buckets/1/flows/1/versions/2\"}}," +
+                "\"link\":{\"params\":{\"rel\":\"content\"},\"href\":\"buckets/i=1/flows/i=1/versions/2\"}}," +
                 "{\"bucketIdentifier\":\"1\"," +
                 "\"flowIdentifier\":\"1\"," +
                 "\"version\":1," +
                 "\"timestamp\":1505091420000," +
                 "\"author\" : \"user1\"," +
                 "\"comments\":\"This is flow 1 snapshot 1\"," +
-                "\"link\":{\"params\":{\"rel\":\"content\"},\"href\":\"buckets/1/flows/1/versions/1\"}}" +
+                "\"link\":{\"params\":{\"rel\":\"content\"},\"href\":\"buckets/i=1/flows/i=1/versions/1\"}}" +
                 "]";
 
         // When: the /buckets/{id}/flows/{id}/versions endpoint is queried
         final String flowSnapshotsJson = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}/versions"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}/versions"))
                 .resolveTemplate("bucketId", prePopulatedBucketId)
                 .resolveTemplate("flowId", prePopulatedFlowId)
                 .request()
@@ -315,7 +315,7 @@ public class FlowsIT extends UnsecuredITBase {
         flow.setName("Test Flow for creating snapshots");
         flow.setDescription("This is a randomly named flow created by an integration test for the purpose of holding snapshots.");
         final VersionedFlow createdFlow = client
-                .target(createURL("buckets/{bucketId}/flows"))
+                .target(createURL("buckets/i={bucketId}/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);
@@ -332,7 +332,7 @@ public class FlowsIT extends UnsecuredITBase {
         flowSnapshot.setFlowContents(new VersionedProcessGroup()); // an empty root process group
 
         WebTarget clientRequestTarget = client
-                .target(createURL("buckets/{bucketId}/flows/{flowId}/versions"))
+                .target(createURL("buckets/i={bucketId}/flows/i={flowId}/versions"))
                 .resolveTemplate("bucketId", bucketId)
                 .resolveTemplate("flowId", flowId);
         final Response response =
@@ -400,7 +400,7 @@ public class FlowsIT extends UnsecuredITBase {
 
         // verify we have an existing flow with the name "Flow 1" in bucket 1
         final VersionedFlow existingFlow = client
-                .target(createURL("buckets/1/flows/1"))
+                .target(createURL("buckets/i=1/flows/i=1"))
                 .request()
                 .get(VersionedFlow.class);
 
@@ -419,7 +419,7 @@ public class FlowsIT extends UnsecuredITBase {
         // saving this flow to bucket 3 should work because bucket 3 is empty
 
         final VersionedFlow createdFlow = client
-                .target(createURL("buckets/3/flows"))
+                .target(createURL("buckets/i=3/flows"))
                 .resolveTemplate("bucketId", bucketId)
                 .request()
                 .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);
@@ -429,7 +429,7 @@ public class FlowsIT extends UnsecuredITBase {
         // saving the flow to bucket 1 should not work because there is a flow with the same name
         flow.setBucketIdentifier("1");
         try {
-            client.target(createURL("buckets/1/flows"))
+            client.target(createURL("buckets/i=1/flows"))
                     .resolveTemplate("bucketId", bucketId)
                     .request()
                     .post(Entity.entity(flow, MediaType.APPLICATION_JSON), VersionedFlow.class);

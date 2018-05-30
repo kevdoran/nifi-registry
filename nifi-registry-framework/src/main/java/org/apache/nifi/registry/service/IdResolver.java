@@ -29,6 +29,9 @@ import java.util.regex.Pattern;
 @Service
 public class IdResolver {
 
+    public static final int PREFIX_LENGTH = 2;
+    public static final String ID_PREFIX = "i=";
+    public static final String NAME_PREFIX = "n=";
     public static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
     private static final Pattern uuidPattern = Pattern.compile(UUID_REGEX);
@@ -41,13 +44,54 @@ public class IdResolver {
         this.metadataService = metadataService;
     }
 
-    public static boolean isUUID(final String string) {
-        if (string == null) {
-            throw new IllegalArgumentException("Input string must not be null");
+    /**
+     * TODO, add documentation and logging
+     */
+    public Optional<String> resolveBucketId(final String bucketIdOrName) {
+        if (bucketIdOrName == null) {
+            throw new IllegalArgumentException("bucketIdOrName must not be null");
         }
-        return uuidPattern.matcher(string).matches();
+
+        final Optional<String> bucketIdOptional;
+        if (isExplicitId(bucketIdOrName)) {
+            bucketIdOptional = Optional.of(removePrefix(bucketIdOrName));
+        } else if (isExplicitName(bucketIdOrName)) {
+            bucketIdOptional = getBucketIdByName(removePrefix(bucketIdOrName));
+        } else {
+            bucketIdOptional = isUUID(bucketIdOrName)
+                    ? Optional.of(bucketIdOrName)
+                    : getBucketIdByName(bucketIdOrName);
+        }
+
+        return bucketIdOptional;
     }
 
+    /**
+     * TODO, add documentation and logging
+     */
+    public Optional<String> resolveFlowId(final String bucketId, String flowIdOrName) {
+        if (bucketId == null || flowIdOrName == null) {
+            throw new IllegalArgumentException("bucketId and flowIdOrName must not be null");
+        }
+
+
+        final Optional<String> flowIdOptional;
+        if (isExplicitId(flowIdOrName)) {
+            flowIdOptional = Optional.of(removePrefix(flowIdOrName));
+        } else if (isExplicitName(flowIdOrName)) {
+            flowIdOptional = getFlowIdByBucketAndName(bucketId, removePrefix(flowIdOrName));
+        } else {
+            flowIdOptional = isUUID(flowIdOrName)
+                    ? Optional.of(flowIdOrName)
+                    : getFlowIdByBucketAndName(bucketId, flowIdOrName);
+        }
+
+        return flowIdOptional;
+    }
+
+    /**
+     * TODO, add documentation and logging
+     */
     public Optional<String> getBucketIdByName(String bucketName) {
         if (bucketName == null) {
             throw new IllegalArgumentException("Bucket name must not be null");
@@ -57,6 +101,9 @@ public class IdResolver {
         return bucketId;
     }
 
+    /**
+     * TODO, add documentation and logging
+     */
     public Optional<String> getFlowIdByBucketAndName(String bucketId, String flowName) {
         if (bucketId == null || flowName == null) {
             throw new IllegalArgumentException("Bucket ID and flow name must not be null");
@@ -64,6 +111,22 @@ public class IdResolver {
 
         final Optional<String> flowId = metadataService.getFlowsByName(bucketId, flowName).stream().findFirst().map(FlowEntity::getId);
         return flowId;
+    }
+
+    private static boolean isExplicitId(final String string) {
+        return string.startsWith(ID_PREFIX);
+    }
+
+    private static boolean isExplicitName(final String string) {
+        return string.startsWith(NAME_PREFIX);
+    }
+
+    private static String removePrefix(final String string) {
+        return string.substring(PREFIX_LENGTH);
+    }
+
+    private static boolean isUUID(final String string) {
+        return uuidPattern.matcher(string).matches();
     }
 
 }

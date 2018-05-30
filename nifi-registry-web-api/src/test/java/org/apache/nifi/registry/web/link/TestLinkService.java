@@ -102,7 +102,7 @@ public class TestLinkService {
         flows.stream().forEach(f -> Assert.assertNull(f.getLink()));
         linkService.populateFlowLinks(flows);
         flows.stream().forEach(f -> Assert.assertEquals(
-                "buckets/" + f.getBucketIdentifier() + "/flows/" + f.getIdentifier(), f.getLink().getUri().toString()));
+                "buckets/i=" + f.getBucketIdentifier() + "/flows/i=" + f.getIdentifier(), f.getLink().getUri().toString()));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class TestLinkService {
         snapshots.stream().forEach(s -> Assert.assertNull(s.getLink()));
         linkService.populateSnapshotLinks(snapshots);
         snapshots.stream().forEach(s -> Assert.assertEquals(
-                "buckets/" + s.getBucketIdentifier() + "/flows/" + s.getFlowIdentifier() + "/versions/" + s.getVersion(), s.getLink().getUri().toString()));
+                "buckets/i=" + s.getBucketIdentifier() + "/flows/i=" + s.getFlowIdentifier() + "/versions/" + s.getVersion(), s.getLink().getUri().toString()));
     }
 
     @Test
@@ -118,7 +118,7 @@ public class TestLinkService {
         items.stream().forEach(i -> Assert.assertNull(i.getLink()));
         linkService.populateItemLinks(items);
         items.stream().forEach(i -> Assert.assertEquals(
-                "buckets/" + i.getBucketIdentifier() + "/flows/" + i.getIdentifier(), i.getLink().getUri().toString()));
+                "buckets/i=" + i.getBucketIdentifier() + "/flows/i=" + i.getIdentifier(), i.getLink().getUri().toString()));
     }
 
 }
